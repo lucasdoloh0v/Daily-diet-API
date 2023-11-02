@@ -1,4 +1,12 @@
-import { afterAll, beforeAll, beforeEach, describe, it } from 'vitest'
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  test,
+} from 'vitest'
 import { execSync } from 'node:child_process'
 import request from 'supertest'
 
@@ -24,8 +32,76 @@ describe('User tests', () => {
       .send({
         name: 'Novo usuário',
         email: 'usuario@email.com',
-        senha: 123456,
+        password: '123456',
       })
       .expect(201)
+  })
+
+  describe('Should not be able to create an user with invalid informations', async () => {
+    test('invalid name', async () => {
+      const response = await request(app.server)
+        .post('/users')
+        .send({
+          name: 4,
+          email: 'test@email.com',
+          password: '123456',
+        })
+        .expect(400)
+
+      expect(JSON.parse(response.text)).toEqual({
+        messages: ['name must be a string'],
+      })
+    })
+
+    test('invalid email', async () => {
+      const response = await request(app.server)
+        .post('/users')
+        .send({
+          name: 'test user',
+          email: 'test',
+          password: '123456',
+        })
+        .expect(400)
+
+      expect(JSON.parse(response.text)).toEqual({
+        messages: ['invalid email format'],
+      })
+    })
+
+    test('invalid password', async () => {
+      const response = await request(app.server)
+        .post('/users')
+        .send({
+          name: 'test user',
+          email: 'test@email.com',
+          password: '123',
+        })
+        .expect(400)
+
+      expect(JSON.parse(response.text)).toEqual({
+        messages: ['min password length is 6'],
+      })
+    })
+
+    test('email in use', async () => {
+      await request(app.server).post('/users').send({
+        name: 'test user',
+        email: 'test@email.com',
+        password: '123456',
+      })
+
+      const response = await request(app.server)
+        .post('/users')
+        .send({
+          name: 'test user',
+          email: 'test@email.com',
+          password: '123456',
+        })
+        .expect(400)
+
+      expect(JSON.parse(response.text)).toEqual({
+        message: 'this email is already in use',
+      })
+    })
   })
 })
