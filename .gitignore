@@ -1,0 +1,7 @@
+node_modules
+
+app.db
+test.db
+
+.env
+.env.test
