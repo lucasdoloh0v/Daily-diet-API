@@ -103,5 +103,30 @@ describe('User tests', () => {
         message: 'this email is already in use',
       })
     })
+
+    test('register user return a token', async () => {
+      const response = await request(app.server).post('/users').send({
+        name: 'test user',
+        email: 'test@email.com',
+        password: '123456',
+      })
+
+      expect(response.body).toHaveProperty('token')
+    })
+
+    test('login return a token', async () => {
+      await request(app.server).post('/users').send({
+        name: 'test user',
+        email: 'test@email.com',
+        password: '123456',
+      })
+
+      const response = await request(app.server).post('/users/login').send({
+        email: 'test@email.com',
+        password: '123456',
+      })
+
+      expect(response.body).toHaveProperty('token')
+    })
   })
 })
