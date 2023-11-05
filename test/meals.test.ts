@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, beforeEach, describe, it } from 'vitest'
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { execSync } from 'node:child_process'
 import request from 'supertest'
 
@@ -37,5 +37,41 @@ describe('Meals routes tests', async () => {
         in_diet: true,
       })
       .expect(201)
+  })
+
+  it('Should be able to update a meal', async () => {
+    const login = await request(app.server).post('/users').send({
+      name: 'Novo usuário',
+      email: 'usuario@email.com',
+      password: '123456',
+    })
+
+    const { token } = login.body
+
+    const {
+      body: { meal },
+    } = await request(app.server)
+      .post('/meals')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        name: 'pão com ovo',
+        description: 'pão francês com ovo frito',
+        meal_date: '2023-11-01T08:10:00Z',
+        in_diet: true,
+      })
+
+    const response = await request(app.server)
+      .put(`/meals/${meal.id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        description: 'pão francês com ovo frito e manteiga',
+      })
+      .expect(200)
+
+    expect(response.body.meal).toEqual(
+      expect.objectContaining({
+        description: 'pão francês com ovo frito e manteiga',
+      }),
+    )
   })
 })
