@@ -1,8 +1,12 @@
-import { FastifyInstance } from 'fastify'
+import { FastifyInstance, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 import { randomUUID } from 'crypto'
 
 import { knexDB } from '../database'
+
+type updateRequest = FastifyRequest<{
+  Params: { id: string }
+}>
 
 export async function mealsRoutes(app: FastifyInstance) {
   app.addHook('preHandler', async (request, reply) => {
@@ -65,5 +69,70 @@ export async function mealsRoutes(app: FastifyInstance) {
       .returning('*')
 
     return reply.status(201).send({ meal })
+  })
+
+  app.put('/:id', async (request: updateRequest, reply) => {
+    const bodySchema = z.object({
+      name: z
+        .string({
+          invalid_type_error: 'name must be a string',
+        })
+        .optional(),
+      description: z
+        .string({
+          invalid_type_error: 'description must be a string',
+        })
+        .optional(),
+      meal_date: z
+        .string({
+          invalid_type_error: 'meal_date must be a string',
+        })
+        .datetime()
+        .optional(),
+      in_diet: z
+        .boolean({
+          invalid_type_error: 'in_diet must be a string',
+        })
+        .optional(),
+    })
+
+    const body = bodySchema.safeParse(request.body)
+
+    if (!body.success) {
+      const messagesErrors = body.error.issues.map((issue) => issue.message)
+
+      return reply.status(400).send({ messages: messagesErrors })
+    }
+
+    if (!Object.keys(body.data)) {
+      return reply
+        .status(400)
+        .send({ message: 'you must send at least one property to update' })
+    }
+
+    const { id } = request.params
+
+    const mealToUpdate = await knexDB('meals')
+      .where({
+        id,
+        user_id: request.user.id,
+      })
+      .first()
+
+    if (!mealToUpdate) {
+      return reply.status(404).send({ message: 'meal not found' })
+    }
+
+    const mealUpdated = {
+      ...mealToUpdate,
+      ...body.data,
+    }
+
+    const [meal] = await knexDB('meals')
+      .where({ id: mealUpdated.id })
+      .update(mealUpdated)
+      .returning('*')
+
+    return reply.status(200).send({ meal })
   })
 }
