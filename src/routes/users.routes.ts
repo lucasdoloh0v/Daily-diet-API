@@ -4,7 +4,6 @@ import { compare, hash } from 'bcryptjs'
 import { randomUUID } from 'node:crypto'
 
 import { knexDB } from '../database'
-import { env } from '../env'
 
 export async function usersRoutes(app: FastifyInstance) {
   app.post('/', async (request, reply) => {
