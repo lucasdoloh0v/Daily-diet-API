@@ -1,7 +1,6 @@
 import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { compare, hash } from 'bcryptjs'
-import jwt from 'jsonwebtoken'
 import { randomUUID } from 'node:crypto'
 
 import { knexDB } from '../database'
@@ -95,10 +94,7 @@ export async function usersRoutes(app: FastifyInstance) {
       return reply.status(401).send({ message: 'email or password is invalid' })
     }
 
-    const token = jwt.sign({}, env.AUTH_SECRET, {
-      subject: user.id,
-      expiresIn: '7d',
-    })
+    const token = await reply.jwtSign({ id: user.id })
 
     return reply.status(200).send({ token })
   })

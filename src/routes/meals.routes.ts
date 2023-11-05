@@ -53,15 +53,17 @@ export async function mealsRoutes(app: FastifyInstance) {
     const id = randomUUID()
     const { user } = request
 
-    await knexDB('meals').insert({
-      id,
-      name,
-      description,
-      meal_date: mealDate,
-      in_diet: inDiet,
-      user_id: user.id,
-    })
+    const [meal] = await knexDB('meals')
+      .insert({
+        id,
+        name,
+        description,
+        meal_date: mealDate,
+        in_diet: inDiet,
+        user_id: user.id,
+      })
+      .returning('*')
 
-    return reply.status(201).send()
+    return reply.status(201).send({ meal })
   })
 }
