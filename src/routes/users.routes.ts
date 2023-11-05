@@ -55,11 +55,7 @@ export async function usersRoutes(app: FastifyInstance) {
       password: hashedPassword,
     })
 
-    const token = jwt.sign({}, env.AUTH_SECRET, {
-      subject: id,
-      expiresIn: '7d',
-    })
-
+    const token = await reply.jwtSign({ id })
     return reply.status(201).send({ token })
   })
 

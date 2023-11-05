@@ -33,8 +33,8 @@ describe('Meals routes tests', async () => {
       .send({
         name: 'pão com ovo',
         description: 'pão francês com ovo frito',
-        date: '2023-11-01 08:10:00',
-        onDiet: true,
+        meal_date: '2023-11-01T08:10:00Z',
+        in_diet: true,
       })
       .expect(201)
   })
