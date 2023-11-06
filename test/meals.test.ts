@@ -165,4 +165,72 @@ describe('Meals routes tests', async () => {
 
     expect(response.body.message).toEqual('meal not found')
   })
+
+  it('Should be able to get a summary', async () => {
+    const login = await request(app.server).post('/users').send({
+      name: 'Novo usuário',
+      email: 'usuario@email.com',
+      password: '123456',
+    })
+
+    const { token } = login.body
+
+    await request(app.server)
+      .post('/meals')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        name: 'pão com ovo',
+        description: 'pão francês com ovo frito',
+        meal_date: '2023-11-01T08:10:00Z',
+        in_diet: true,
+      })
+      .expect(201)
+
+    await request(app.server)
+      .post('/meals')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        name: 'pão com ovo',
+        description: 'pão francês com ovo frito',
+        meal_date: '2023-11-01T08:10:00Z',
+        in_diet: true,
+      })
+      .expect(201)
+
+    await request(app.server)
+      .post('/meals')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        name: 'pão com ovo',
+        description: 'pão francês com ovo frito',
+        meal_date: '2023-11-01T08:10:00Z',
+        in_diet: false,
+      })
+      .expect(201)
+
+    await request(app.server)
+      .post('/meals')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        name: 'pão com ovo',
+        description: 'pão francês com ovo frito',
+        meal_date: '2023-11-01T08:10:00Z',
+        in_diet: true,
+      })
+      .expect(201)
+
+    const response = await request(app.server)
+      .get('/meals/summary')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200)
+
+    expect(response.body.summary).toEqual(
+      expect.objectContaining({
+        meals: 4,
+        mealsInDiet: 3,
+        mealsOffDiet: 1,
+        higherSequenceInDiet: 2,
+      }),
+    )
+  })
 })
