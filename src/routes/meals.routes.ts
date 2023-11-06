@@ -4,7 +4,7 @@ import { randomUUID } from 'crypto'
 
 import { knexDB } from '../database'
 
-type updateRequest = FastifyRequest<{
+type RequestParamsWithId = FastifyRequest<{
   Params: { id: string }
 }>
 
@@ -71,7 +71,7 @@ export async function mealsRoutes(app: FastifyInstance) {
     return reply.status(201).send({ meal })
   })
 
-  app.put('/:id', async (request: updateRequest, reply) => {
+  app.put('/:id', async (request: RequestParamsWithId, reply) => {
     const bodySchema = z.object({
       name: z
         .string({
@@ -134,5 +134,20 @@ export async function mealsRoutes(app: FastifyInstance) {
       .returning('*')
 
     return reply.status(200).send({ meal })
+  })
+
+  app.delete('/:id', async (request: RequestParamsWithId, reply) => {
+    const { id } = request.params
+    const { id: userId } = request.user
+
+    const meal = await knexDB('meals').where({ id, user_id: userId }).first()
+
+    if (!meal) {
+      return reply.status(404).send({ message: 'meal not found' })
+    }
+
+    await knexDB('meals').where({ id, user_id: userId }).delete()
+
+    return reply.status(202).send()
   })
 }
