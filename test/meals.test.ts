@@ -74,4 +74,31 @@ describe('Meals routes tests', async () => {
       }),
     )
   })
+
+  it('Should be able to delete a meal', async () => {
+    const login = await request(app.server).post('/users').send({
+      name: 'Novo usuário',
+      email: 'usuario@email.com',
+      password: '123456',
+    })
+
+    const { token } = login.body
+
+    const {
+      body: { meal },
+    } = await request(app.server)
+      .post('/meals')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        name: 'pão com ovo',
+        description: 'pão francês com ovo frito',
+        meal_date: '2023-11-01T08:10:00Z',
+        in_diet: true,
+      })
+
+    await request(app.server)
+      .delete(`/meals/${meal.id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(202)
+  })
 })
