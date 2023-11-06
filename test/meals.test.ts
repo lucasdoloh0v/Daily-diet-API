@@ -100,5 +100,15 @@ describe('Meals routes tests', async () => {
       .delete(`/meals/${meal.id}`)
       .set('Authorization', `Bearer ${token}`)
       .expect(202)
+
+    const response = await request(app.server)
+      .get(`/meals/${meal.id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        description: 'pão francês com ovo frito e manteiga',
+      })
+      .expect(404)
+
+    expect(response.body.message).toEqual('meal not found')
   })
 })
