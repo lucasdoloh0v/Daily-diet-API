@@ -8,6 +8,15 @@ type RequestParamsWithId = FastifyRequest<{
   Params: { id: string }
 }>
 
+type Meals = {
+  id: string
+  name: string
+  description: string
+  meal_date: string
+  in_diet: number
+  user_id: string
+}[]
+
 export async function mealsRoutes(app: FastifyInstance) {
   app.addHook('preHandler', async (request, reply) => {
     try {
@@ -36,6 +45,48 @@ export async function mealsRoutes(app: FastifyInstance) {
     }
 
     return reply.status(200).send({ meal })
+  })
+
+  app.get('/summary', async (request, reply) => {
+    const userId = request.user.id
+
+    const meals = await knexDB('meals').where({ user_id: userId })
+
+    const getSequencyInDiet = (meals: Meals): number => {
+      interface Sequency {
+        sequency: number
+        maxSequency: number
+      }
+
+      const sequencies: Sequency = meals.reduce<Sequency>(
+        (previousValue: Sequency, currentValue) => {
+          if (currentValue.in_diet) {
+            previousValue.sequency += 1
+            if (previousValue.sequency > previousValue.maxSequency) {
+              previousValue.maxSequency = previousValue.sequency
+            }
+          } else {
+            previousValue.sequency = 0
+          }
+          return previousValue
+        },
+        {
+          sequency: 0,
+          maxSequency: 0,
+        } as Sequency,
+      )
+
+      return sequencies.maxSequency
+    }
+
+    const summary = {
+      meals: meals.length,
+      mealsInDiet: meals.filter((meal) => !!meal.in_diet === true).length,
+      mealsOffDiet: meals.filter((meal) => !!meal.in_diet === false).length,
+      higherSequenceInDiet: getSequencyInDiet(meals),
+    }
+
+    return reply.status(200).send({ summary })
   })
 
   app.post('/', async (request, reply) => {
@@ -84,7 +135,7 @@ export async function mealsRoutes(app: FastifyInstance) {
         name,
         description,
         meal_date: mealDate,
-        in_diet: inDiet,
+        in_diet: inDiet ? 1 : 0,
         user_id: user.id,
       })
       .returning('*')
@@ -144,9 +195,12 @@ export async function mealsRoutes(app: FastifyInstance) {
       return reply.status(404).send({ message: 'meal not found' })
     }
 
+    const inDiet = body.data.in_diet ? 1 : 0
+
     const mealUpdated = {
       ...mealToUpdate,
       ...body.data,
+      in_diet: inDiet,
     }
 
     const [meal] = await knexDB('meals')
