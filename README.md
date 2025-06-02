@@ -54,15 +54,21 @@ O servidor estará rodando em http://localhost:3000
 
 ### Autenticação
 - <mark>POST /users</mark> – Cria um novo usuário<br>
-  campos:
-  - name (string)
-  - email (string)
-  - password (string)
+  - Campos
+    - name (string)
+    - email (string em formato válido de email)
+    - password (string entre 6 e 10 caracteres)
+  - Validações
+    - Verifica se o email já está em uso
+    - Faz hash da senha antes de salvar
 
 - <mark>POST /users/login</mark> – Retorna um token de autenticação JWT<br>
-  campos:
-  - email (string)
-  - password (string)
+  - Campos
+    - email (stringem formato válido de email)
+    - password (string entre 6 e 10 caracteres)
+  - Validações
+    - Verifica se o usuário existe
+    - Verifica se a senha está correta usando bcryptjs
 
 ### Refeições
 
