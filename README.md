@@ -55,11 +55,41 @@ O servidor estará rodando em http://localhost:3000
 ### Autenticação
 - <mark>POST /users</mark> – Cria um novo usuário<br>
   campos:
-  - name
-  - email
-  - password
+  - name (string)
+  - email (string)
+  - password (string)
 
-- <mark>POST /users/login</mark> – Retorna um token de autenticação<br>
+- <mark>POST /users/login</mark> – Retorna um token de autenticação JWT<br>
   campos:
-  - email
-  - password
+  - email (string)
+  - password (string)
+
+### Refeições
+
+ Todas as rotas possuem um middleware de autenticação (preHandler) que verifica se o usuário está autenticado através de JWT. Se não estiver autenticado, retorna status 401.<br>
+ O token JWT deve ser enviado no cabeçalho (header) da requisição HTTP seguindo o padrão Bearer Token. Aqui está como deve ser feito:
+ - No cabeçalho da requisição, você deve incluir:
+    ```
+    Authorization: Bearer <seu_token_jwt>
+    ```
+
+- <mark>GET /meals</mark> - Lista todas as refeições do usuário
+- <mark>GET /meals/:id</mark> - Busca uma refeição específica pelo ID
+- <mark>GET /meals/summary</mark> - Retorna um resumo estatístico das refeições do usuário, incluindo:
+  - Total de refeições registradas
+  - Total de refeições dentro da dieta
+  - Total de refeições fora da dieta
+  - Maior sequência de refeições dentro da dieta
+- <mark>POST /meals</mark> - Cria uma nova refeição<br>
+  Campos:
+  - name (string)
+  - description (string)
+  - meal_date (string em formato datetime)
+  - in_diet (boolean)
+- <mark>PUT /meals/:id</mark> - Atualiza uma refeição existente<br>
+  Campos:
+  - name (opcional)
+  - description (opcional)
+  - meal_date (opcional)
+  - in_diet (opcional)
+- <mark>DELETE /meals/:id</mark> - Remove uma refeição específica
