@@ -1,34 +1,56 @@
 # 🍽️ Daily Diet API
 
-A **Daily Diet API** é uma aplicação backend desenvolvida com TypeScript que permite o gerenciamento de refeições, incluindo o registro de alimentos consumidos, controle de horários e categorias, além de possibilitar a autenticação de usuários.
+API para gerenciamento de refeições dentro e fora da dieta, desenvolvida com Node.js, TypeScript e Fastify.
 
-## 🚀 Tecnologias Utilizadas
+## 💻 Tecnologias
 
-- [Node.js](https://nodejs.org/)
-- [TypeScript](https://www.typescriptlang.org/)
-- [Knex.js](https://knexjs.org/) – SQL query builder
-- [SQLite](https://www.sqlite.org/) – banco de dados leve
-- [bcryptjs](https://github.com/dcodeIO/bcrypt.js) – para hash de senhas
-- [jsonwebtoken](https://github.com/auth0/node-jsonwebtoken) – para autenticação via JWT
+- Node.js
+- TypeScript
+- Fastify
+- Knex (Query Builder)
+- SQLite
+- Zod (Validação)
+- JWT (Autenticação)
+- Bcryptjs (hash de senhas)
+- ESLint
 
-## 📦 Instalação e Execução
+## 🚀 Funcionalidades
 
-### 1. Clone o repositório
+### Usuários
+- Criação de conta
+- Login com autenticação JWT
 
+### Refeições
+- Criar, editar e apagar refeições
+- Listar todas as refeições
+- Visualizar uma refeição específica
+- Métricas do usuário:
+  - Total de refeições registradas
+  - Total de refeições dentro da dieta
+  - Total de refeições fora da dieta
+  - Melhor sequência de refeições dentro da dieta
+
+## 📝 Requisitos
+
+- Node.js
+- NPM ou Yarn
+
+## 🔧 Instalação
+
+1. Clone o repositório:
 ```bash
-git clone https://github.com/lucasdoloh0v/Daily-diet-API.git
-cd Daily-diet-API
+git clone [url-do-repositorio]
 ```
 
-### 2. Instale as dependências
-
+2. Instale as dependências:
 ```bash
 npm install
+# ou
+yarn
 ```
 
-### 3. Configure as variáveis de ambiente
+3. Configure as variáveis de ambiente:
 Crie um arquivo .env na raiz do projeto com as seguintes variáveis:
-
 ```env
 NODE_ENV="development"
 DATABASE_CLIENT=sqlite
@@ -36,66 +58,85 @@ DATABASE_URL="./db/app.db"
 AUTH_SECRET=jwttest
 ```
 
-### 4. Execute as migrações do banco de dados
-
+4. Execute as migrations:
 ```bash
 npm run knex -- migrate:latest
+# ou
+yarn knex migrate:latest
 ```
 
-### 5. Inicie o servidor
-
+5. Inicie o servidor:
 ```bash
 npm run dev
+# ou
+yarn dev
+```
+O servidor estará rodando em http://localhost:3333
+
+## 🔒 Autenticação
+
+A API utiliza autenticação JWT. Para acessar as rotas protegidas, é necessário:
+1. Criar uma conta ou fazer login para receber o token
+2. Incluir o token no header das requisições:
+```
+Authorization: Bearer [seu-token]
 ```
 
-O servidor estará rodando em http://localhost:3000
+## 📚 Endpoints
 
-## 🧾 Endpoints Principais
+### Usuários
 
-### Autenticação
-- <mark>POST /users</mark> – Cria um novo usuário<br>
-  - Campos
-    - name (string)
-    - email (string em formato válido de email)
-    - password (string entre 6 e 10 caracteres)
-  - Validações
-    - Verifica se o email já está em uso
-    - Faz hash da senha antes de salvar
+#### POST /users
+Cria um novo usuário
+```json
+{
+  "name": "string",
+  "email": "string",
+  "password": "string (6-10 caracteres)"
+}
+```
 
-- <mark>POST /users/login</mark> – Retorna um token de autenticação JWT<br>
-  - Campos
-    - email (stringem formato válido de email)
-    - password (string entre 6 e 10 caracteres)
-  - Validações
-    - Verifica se o usuário existe
-    - Verifica se a senha está correta usando bcryptjs
+#### POST /users/login
+Realiza login
+```json
+{
+  "email": "string",
+  "password": "string"
+}
+```
 
 ### Refeições
 
- Todas as rotas possuem um middleware de autenticação (preHandler) que verifica se o usuário está autenticado através de JWT. Se não estiver autenticado, retorna status 401.<br>
- O token JWT deve ser enviado no cabeçalho (header) da requisição HTTP seguindo o padrão Bearer Token. Aqui está como deve ser feito:
- - No cabeçalho da requisição, você deve incluir:
-    ```
-    Authorization: Bearer <seu_token_jwt>
-    ```
+#### GET /meals
+Lista todas as refeições do usuário
 
-- <mark>GET /meals</mark> - Lista todas as refeições do usuário
-- <mark>GET /meals/:id</mark> - Busca uma refeição específica pelo ID
-- <mark>GET /meals/summary</mark> - Retorna um resumo estatístico das refeições do usuário, incluindo:
-  - Total de refeições registradas
-  - Total de refeições dentro da dieta
-  - Total de refeições fora da dieta
-  - Maior sequência de refeições dentro da dieta
-- <mark>POST /meals</mark> - Cria uma nova refeição<br>
-  Campos:
-  - name (string)
-  - description (string)
-  - meal_date (string em formato datetime)
-  - in_diet (boolean)
-- <mark>PUT /meals/:id</mark> - Atualiza uma refeição existente<br>
-  Campos:
-  - name (opcional)
-  - description (opcional)
-  - meal_date (opcional)
-  - in_diet (opcional)
-- <mark>DELETE /meals/:id</mark> - Remove uma refeição específica
+#### GET /meals/:id
+Busca uma refeição específica
+
+#### GET /meals/summary
+Retorna métricas do usuário
+
+#### POST /meals
+Cria uma nova refeição
+```json
+{
+  "name": "string",
+  "description": "string",
+  "meal_date": "string (datetime)",
+  "in_diet": boolean
+}
+```
+
+#### PUT /meals/:id
+Atualiza uma refeição existente
+```json
+{
+  "name": "string (opcional)",
+  "description": "string (opcional)",
+  "meal_date": "string datetime (opcional)",
+  "in_diet": "boolean (opcional)"
+}
+```
+
+#### DELETE /meals/:id
+Remove uma refeição
